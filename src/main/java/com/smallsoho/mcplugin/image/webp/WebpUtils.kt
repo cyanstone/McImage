@@ -24,10 +24,10 @@ class WebpUtils {
             return AndroidUtil.getMinSdkVersion(project) >= VERSION_SUPPORT_TRANSPARENT_WEBP
         }
 
-        private fun formatWebp(imgFile: File) {
+        private fun formatWebp(imgFile: File){
             if (ImageUtil.isImage(imgFile)) {
                 val webpFile = File("${imgFile.path.substring(0, imgFile.path.lastIndexOf("."))}.webp")
-                Tools.cmd("cwebp", "${imgFile.path} -o ${webpFile.path} -quiet")
+                Tools.cmd("cwebp","${imgFile.path} -o ${webpFile.path} -m 6 -quiet")
                 if (webpFile.length() < imgFile.length()) {
                     LogUtil.log(TAG, imgFile.path, imgFile.length().toString(), webpFile.length().toString())
                     if (imgFile.exists()) {
@@ -38,11 +38,13 @@ class WebpUtils {
                     if (webpFile.exists()) {
                         webpFile.delete()
                     }
+                    println("cwebp size[${webpFile.path}] > imgFile size[${imgFile.path}]")
                 }
             }
         }
 
-        fun securityFormatWebp(imgFile: File, config: Config, project: Project) {
+        fun securityFormatWebp(imgFile: File, config: Config, project: Project){
+            println("start securityFormatWebp : ${imgFile.name}")
             if (ImageUtil.isImage(imgFile)) {
                 //png
                 if (imgFile.name.endsWith(Const.PNG)) {
