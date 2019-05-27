@@ -16,7 +16,8 @@ class ImagePlugin : Plugin<Project> {
 
     private lateinit var mcImageProject: Project
     private lateinit var mcImageConfig: Config
-
+    private var oldTotalSize = 0L
+    private var newTotalSize = 0L
 
     override fun apply(project: Project) {
 
@@ -33,6 +34,7 @@ class ImagePlugin : Plugin<Project> {
         //set config
         project.extensions.create("McImageConfig", Config::class.java)
         mcImageConfig = project.property("McImageConfig") as Config
+        println(mcImageConfig.toString())
 
         val taskNames = project.gradle.startParameter.taskNames
         var isDebugTask = false
@@ -62,7 +64,7 @@ class ImagePlugin : Plugin<Project> {
 
                 if (mcImageConfig.mctoolsDir.isBlank()) {
                     FileUtil.setRootDir(project.rootDir.path)
-                } else{
+                } else {
                     FileUtil.setRootDir(mcImageConfig.mctoolsDir)
                 }
 
@@ -87,7 +89,7 @@ class ImagePlugin : Plugin<Project> {
                     val bigImgList = ArrayList<String>()
 
                     val cacheList = ArrayList<String>()
-
+                    println(mcImageConfig.toString())
                     if (dir != null) {
                         for (channelDir: File in dir) {
                             listDir(channelDir, cacheList, object : IBigImage {
@@ -100,14 +102,16 @@ class ImagePlugin : Plugin<Project> {
 
 
                     if (bigImgList.size != 0) {
-                        val stringBuffer = StringBuffer("You have big Img!!!! \n")
+                        val stringBuffer = StringBuffer("You have big size or big pixels Image!!!! \n")
                         for (i: Int in 0 until bigImgList.size) {
                             stringBuffer.append(bigImgList[i])
                             stringBuffer.append("\n")
                         }
                         throw GradleException(stringBuffer.toString())
                     }
-
+                    println("before optimize: " + oldTotalSize / 1024 + "KB")
+                    println("after optimize: " + newTotalSize / 1024 + "KB")
+                    println("image size reduce: " + (oldTotalSize - newTotalSize) / 1024 + "KB")
                     println("---- McImage Plugin End ----")
                 }
 
@@ -141,31 +145,38 @@ class ImagePlugin : Plugin<Project> {
                 if (it.isDirectory) {
                     listDir(it, cacheList, iBigImage)
                 } else {
-                    rawCompress(it, iBigImage)
+                    if (ImageUtil.isImage(it)) {
+                        rawCompress(it, iBigImage)
+                    }
                 }
             }
         } else {
-            rawCompress(file, iBigImage)
+            if (ImageUtil.isImage(file)) {
+                rawCompress(file, iBigImage)
+            }
         }
     }
 
     private fun rawCompress(file: File, iBigImage: IBigImage) {
+        oldTotalSize += file.length()
         if (mcImageConfig.whiteList.contains(file.name)) {
             return
         }
-        if (mcImageConfig.isCheck &&
-                ImageUtil.isBigImage(file, mcImageConfig.maxSize)) {
+        if (mcImageConfig.isCheckStorageSize &&
+                ImageUtil.isBigStorageSizeImage(file, mcImageConfig.maxStroageSize)) {
             iBigImage.onBigImage(file)
         }
-        if (mcImageConfig.isCompress) {
-            CompressUtil.compressImg(file)
-        }
-        if (mcImageConfig.isCheckSize && ImageUtil.isBigSizeImage(file, mcImageConfig.maxWidth, mcImageConfig.maxHeight)) {
+        if (mcImageConfig.isCheckPixelSize &&
+                ImageUtil.isBigPixelSizeImage(file, mcImageConfig.maxWidth, mcImageConfig.maxHeight)) {
             iBigImage.onBigImage(file)
         }
-        if (mcImageConfig.isWebpConvert) {
-            WebpUtils.securityFormatWebp(file, mcImageConfig, mcImageProject)
+        when (mcImageConfig.optimizeWay) {
+            Config.OPTIMIZE_WEBP_CONVERT ->
+                WebpUtils.securityFormatWebp(file, mcImageConfig, mcImageProject)
+            Config.OPTIMIZE_COMPRESS_PICTURE ->
+                CompressUtil.compressImg(file)
         }
+        newTotalSize += file.length()
     }
 
 }

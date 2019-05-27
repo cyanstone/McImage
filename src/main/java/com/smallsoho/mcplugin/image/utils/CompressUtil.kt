@@ -21,7 +21,7 @@ class CompressUtil {
                 newSize = tempFile.length()
                 println("newSize = ${newSize}")
                 if (newSize < oldSize) {
-                    var imgFileName: String = imgFile.path;
+                    var imgFileName: String = imgFile.path
                     if (imgFile.exists()) {
                         imgFile.delete()
                     }
@@ -35,6 +35,7 @@ class CompressUtil {
 
             } else {
                 Tools.cmd("pngquant", "--skip-if-larger --speed 1 --nofs --strip --force --output ${imgFile.path} -- ${imgFile.path}")
+                newSize = imgFile.length()
             }
 
             LogUtil.log(TAG, imgFile.path, oldSize.toString(), newSize.toString())
