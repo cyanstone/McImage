@@ -9,11 +9,11 @@ public class Config {
     public String optimizeWay = OPTIMIZE_WEBP_CONVERT; //优化方式，webp化、压缩图片
     public boolean enableWhenDebug = true;
     public boolean isCheckPixelSize = true; //是否检查大像素图片
-    public int maxWidth = 500;
-    public int maxHeight = 500;
+    public int maxWidth = 1000;
+    public int maxHeight = 1000;
     public String[] whiteList = new String[]{};
     public String mctoolsDir = "";
-    public boolean isSupportAlphaWebp = true; //是否支持webp化透明通道的图片
+    public boolean isSupportAlphaWebp = false; //是否支持webp化透明通道的图片
 
     public void maxSize(float maxSize) {
         this.maxStroageSize = maxSize;
@@ -69,12 +69,12 @@ public class Config {
             + "isCheckPixelSize: " + isCheckPixelSize + "\n"
             + "maxWidth: " + maxWidth + ", maxHeight: "  + maxHeight + "\n"
             + "mctoolsDir: " + mctoolsDir + "\n"
-            + "isSupportAlphaWebp: " + isSupportAlphaWebp
-            + "whiteList : ");
+            + "isSupportAlphaWebp: " + isSupportAlphaWebp + "\n"
+            + "whiteList : " + "\n");
         for(String file : whiteList) {
             result.append("-> : " + file + "\n");
         }
-        result.append("-----------");
+        result.append("-----------\n");
         return result.toString();
     }
 }

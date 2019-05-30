@@ -46,6 +46,15 @@ class Tools {
             return system.startsWith("Windows")
         }
 
+        fun is32Bit(): Boolean {
+            var ARCH_DATA_MODEL: String? = System.getProperty("sun.arch.data.model")
+            return ARCH_DATA_MODEL == null || ARCH_DATA_MODEL == "32"
+        }
+
+        fun is64Bit(): Boolean {
+            return !is32Bit()
+        }
+
         fun chmod() {
             outputMessage("chmod 755 -R ${FileUtil.getRootDirPath()}")
         }

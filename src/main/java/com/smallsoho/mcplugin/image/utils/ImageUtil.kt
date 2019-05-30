@@ -57,5 +57,17 @@ class ImageUtil {
             }
             return false
         }
+
+        fun isNonOpaque(image: BufferedImage): Boolean {
+            for (y in 0 until image.height) {
+                for (x in 0 until image.width) {
+                    val rgb = image.getRGB(x, y)
+                    if (rgb and -0x1000000 xor -0x1000000 != 0) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
     }
 }

@@ -6,9 +6,9 @@ class CompressUtil {
 
     companion object {
         private const val TAG = "Compress"
-        fun compressImg(imgFile: File) {
+        fun compressImg(imgFile: File):Long {
             if (!ImageUtil.isImage(imgFile)) {
-                return
+                return 0L
             }
 
             val oldSize = imgFile.length()
@@ -27,18 +27,20 @@ class CompressUtil {
                     }
                     var newFile: File = File(imgFileName)
                     tempFile.renameTo(newFile)
+                    return newSize
                 } else {
                     if (tempFile.exists()) {
                         tempFile.delete()
                     }
+                    return oldSize
                 }
-
             } else {
                 Tools.cmd("pngquant", "--skip-if-larger --speed 1 --nofs --strip --force --output ${imgFile.path} -- ${imgFile.path}")
                 newSize = imgFile.length()
+                return newSize
             }
 
-            LogUtil.log(TAG, imgFile.path, oldSize.toString(), newSize.toString())
+            LogUtil.log(TAG, imgFile.name, oldSize.toString(), newSize.toString())
         }
     }
 

@@ -6,11 +6,18 @@ import com.android.build.gradle.internal.api.BaseVariantImpl
 import com.smallsoho.mcplugin.image.`interface`.IBigImage
 import com.smallsoho.mcplugin.image.utils.*
 import com.smallsoho.mcplugin.image.webp.WebpUtils
+import com.smallsoho.mcplugin.image.webp.webpapi.WebpImageReaderSpi
+import com.smallsoho.mcplugin.image.webp.webpapi.WebpImageWriterSpi
+import com.smallsoho.mcplugin.image.webp.webpapi.WebpNativeLibHelper
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import java.io.File
+import java.lang.Exception
+import javax.imageio.spi.IIORegistry
+import javax.imageio.spi.ImageReaderSpi
+import javax.imageio.spi.ImageWriterSpi
 
 class ImagePlugin : Plugin<Project> {
 
@@ -83,7 +90,11 @@ class ImagePlugin : Plugin<Project> {
 
                 mcPicTask.doLast { _ ->
                     println("---- McImage Plugin Start ----")
-
+                    IIORegistry.getDefaultInstance().registerServiceProvider(WebpImageReaderSpi(), ImageReaderSpi::class.java)
+                    IIORegistry.getDefaultInstance().registerServiceProvider(WebpImageWriterSpi(), ImageWriterSpi::class.java)
+                    println("根目录：" + System.getProperty("user.dir"))
+                    println("库路径：" + WebpNativeLibHelper.getLibLocation().getAbsolutePath())
+                    println("是否加载成功：" + WebpNativeLibHelper.loadNativeLibraryIfNeeded())
                     val dir = variant.mergeResources.computeResourceSetList0() //强行调用一下
 
                     val bigImgList = ArrayList<String>()
@@ -109,9 +120,12 @@ class ImagePlugin : Plugin<Project> {
                         }
                         throw GradleException(stringBuffer.toString())
                     }
+                    println("------------------")
                     println("before optimize: " + oldTotalSize / 1024 + "KB")
                     println("after optimize: " + newTotalSize / 1024 + "KB")
                     println("image size reduce: " + (oldTotalSize - newTotalSize) / 1024 + "KB")
+                    println("pngCount:" + WebpUtils.pngCount)
+                    println("webpCount:" + WebpUtils.webpCount)
                     println("---- McImage Plugin End ----")
                 }
 
@@ -170,13 +184,14 @@ class ImagePlugin : Plugin<Project> {
                 ImageUtil.isBigPixelSizeImage(file, mcImageConfig.maxWidth, mcImageConfig.maxHeight)) {
             iBigImage.onBigImage(file)
         }
+        var size:Long = 0L
         when (mcImageConfig.optimizeWay) {
             Config.OPTIMIZE_WEBP_CONVERT ->
-                WebpUtils.securityFormatWebp(file, mcImageConfig, mcImageProject)
+                size = WebpUtils.securityFormatWebp(file, mcImageConfig, mcImageProject)
             Config.OPTIMIZE_COMPRESS_PICTURE ->
-                CompressUtil.compressImg(file)
+                size = CompressUtil.compressImg(file)
         }
-        newTotalSize += file.length()
+        newTotalSize += size
     }
 
 }
